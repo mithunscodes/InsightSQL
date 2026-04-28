@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InsightSQL — Reports</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="brand-icon">⬡</span> InsightSQL
+    </div>
+    <div class="nav-links">
+      <a href="/">Dashboard</a>
+      <a href="/reports" class="active">Reports</a>
+      <a href="/customers">Customers</a>
+      <a href="/products">Products</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="page-header">
+      <h1>Analytics Reports</h1>
+      <p class="subtitle">Deep-dive SQL-powered reporting</p>
+    </div>
+
+    <!-- Monthly Revenue Chart -->
+    <div class="chart-card full-width">
+      <h2>Monthly Revenue Trend</h2>
+      <canvas id="monthlyChart" height="80"></canvas>
+    </div>
+
+    <!-- City + Category Charts -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <h2>Revenue by City</h2>
+        <canvas id="cityChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h2>Revenue by Category</h2>
+        <canvas id="catChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Sales Summary View (from MySQL VIEW) -->
+    <div class="table-card full-width">
+      <h2>Sales Summary <span class="sql-badge">VIEW: sales_summary</span></h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Units Sold</th>
+            <th>Total Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in sales_summary %}
+          <tr>
+            <td>{{ row.product_name }}</td>
+            <td><span class="badge">{{ row.category }}</span></td>
+            <td>{{ row.units_sold }}</td>
+            <td class="money">${{ "%.2f"|format(row.total_revenue) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- All Products Table -->
+    <div class="table-card full-width">
+      <h2>Product Performance</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Units Sold</th>
+            <th>Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in products %}
+          <tr>
+            <td>{{ p.name }}</td>
+            <td><span class="badge">{{ p.category }}</span></td>
+            <td>${{ "%.2f"|format(p.price) }}</td>
+            <td class="{{ 'stock-low' if p.stock_quantity < 50 else '' }}">{{ p.stock_quantity }}</td>
+            <td>{{ p.units_sold }}</td>
+            <td class="money">${{ "%.2f"|format(p.revenue) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- City Revenue Table -->
+    <div class="table-card full-width">
+      <h2>Revenue by City</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>City</th>
+            <th>Customers</th>
+            <th>Orders</th>
+            <th>Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in city_revenue %}
+          <tr>
+            <td>{{ row.city }}</td>
+            <td>{{ row.customers }}</td>
+            <td>{{ row.orders }}</td>
+            <td class="money">${{ "%.2f"|format(row.revenue) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>InsightSQL &mdash; Built with Flask &amp; MySQL</p>
+  </footer>
+
+  <script>
+    const monthlyData = {{ monthly_revenue | tojson }};
+    const cityData    = {{ city_revenue    | tojson }};
+    const catData     = {{ category_revenue| tojson }};
+
+    const COLORS = ["#6c63ff","#f59e0b","#10b981","#ef4444","#3b82f6","#ec4899","#8b5cf6","#14b8a6"];
+
+    new Chart(document.getElementById("monthlyChart"), {
+      type: "line",
+      data: {
+        labels: monthlyData.map(r => `${r.year}-${String(r.month).padStart(2,"0")}`),
+        datasets: [{
+          label: "Revenue ($)",
+          data: monthlyData.map(r => r.revenue),
+          borderColor: "#6c63ff",
+          backgroundColor: "rgba(108,99,255,0.1)",
+          fill: true,
+          tension: 0.4,
+          pointRadius: 5,
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    new Chart(document.getElementById("cityChart"), {
+      type: "bar",
+      data: {
+        labels: cityData.map(r => r.city),
+        datasets: [{
+          label: "Revenue ($)",
+          data: cityData.map(r => r.revenue),
+          backgroundColor: COLORS,
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    new Chart(document.getElementById("catChart"), {
+      type: "doughnut",
+      data: {
+        labels: catData.map(r => r.category),
+        datasets: [{
+          data: catData.map(r => r.revenue),
+          backgroundColor: COLORS,
+        }]
+      },
+      options: { responsive: true }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InsightSQL — Sales Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="brand-icon">⬡</span> InsightSQL
+    </div>
+    <div class="nav-links">
+      <a href="/" class="active">Dashboard</a>
+      <a href="/reports">Reports</a>
+      <a href="/customers">Customers</a>
+      <a href="/products">Products</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="page-header">
+      <h1>Sales Overview</h1>
+      <p class="subtitle">Real-time analytics powered by MySQL</p>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Revenue</div>
+        <div class="kpi-value">${{ "%.2f"|format(total_revenue) }}</div>
+        <div class="kpi-sub">All time</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Orders</div>
+        <div class="kpi-value">{{ total_orders }}</div>
+        <div class="kpi-sub">Completed orders</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Avg. Order Value</div>
+        <div class="kpi-value">
+          ${{ "%.2f"|format(total_revenue / total_orders if total_orders else 0) }}
+        </div>
+        <div class="kpi-sub">Per order</div>
+      </div>
+      <div class="kpi-card alert-card">
+        <div class="kpi-label">Low Stock Items</div>
+        <div class="kpi-value">{{ low_stock|length }}</div>
+        <div class="kpi-sub">Below threshold</div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-row">
+      <div class="chart-card wide">
+        <h2>Monthly Revenue Trend</h2>
+        <canvas id="revenueChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h2>Revenue by Category</h2>
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Tables Row -->
+    <div class="tables-row">
+      <!-- Top Products -->
+      <div class="table-card">
+        <h2>Top Products</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Units</th>
+              <th>Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i, p in top_products|enumerate %}
+            <tr>
+              <td class="rank">{{ i + 1 }}</td>
+              <td>{{ p.name }}</td>
+              <td><span class="badge">{{ p.category }}</span></td>
+              <td>{{ p.units_sold }}</td>
+              <td class="money">${{ "%.2f"|format(p.revenue) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Top Customers -->
+      <div class="table-card">
+        <h2>Top Customers</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Customer</th>
+              <th>City</th>
+              <th>Orders</th>
+              <th>Spent</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i, c in top_customers|enumerate %}
+            <tr>
+              <td class="rank">{{ i + 1 }}</td>
+              <td>
+                <a href="/customers/{{ c.customer_id }}">{{ c.name }}</a>
+              </td>
+              <td>{{ c.city }}</td>
+              <td>{{ c.total_orders }}</td>
+              <td class="money">${{ "%.2f"|format(c.total_spent) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="table-card full-width">
+      <h2>Recent Orders</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in recent_orders %}
+          <tr>
+            <td>#{{ o.order_id }}</td>
+            <td>{{ o.customer }}</td>
+            <td>{{ o.order_date }}</td>
+            <td><span class="status {{ o.status }}">{{ o.status }}</span></td>
+            <td class="money">${{ "%.2f"|format(o.order_total) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Low Stock Alert -->
+    {% if low_stock %}
+    <div class="table-card full-width alert-section">
+      <h2>⚠ Low Stock Alerts</h2>
+      <table>
+        <thead>
+          <tr><th>Product</th><th>Category</th><th>Stock</th></tr>
+        </thead>
+        <tbody>
+          {% for item in low_stock %}
+          <tr>
+            <td>{{ item.name }}</td>
+            <td><span class="badge">{{ item.category }}</span></td>
+            <td class="stock-low">{{ item.stock_quantity }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </main>
+
+  <footer class="footer">
+    <p>InsightSQL &mdash; Built with Flask &amp; MySQL &mdash; <a href="/reports">View Full Reports →</a></p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='charts.js') }}"></script>
+</body>
+</html>

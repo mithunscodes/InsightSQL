@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InsightSQL — {{ view|title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="brand-icon">⬡</span> InsightSQL
+    </div>
+    <div class="nav-links">
+      <a href="/">Dashboard</a>
+      <a href="/reports">Reports</a>
+      <a href="/customers" class="{{ 'active' if view in ['customers','customer_detail'] else '' }}">Customers</a>
+      <a href="/products"  class="{{ 'active' if view == 'products' else '' }}">Products</a>
+    </div>
+  </nav>
+
+  <main class="container">
+
+    <!-- ── CUSTOMERS LIST ── -->
+    {% if view == "customers" %}
+    <div class="page-header">
+      <h1>Customers</h1>
+      <p class="subtitle">Filter and search your customer base</p>
+    </div>
+
+    <form class="filter-bar" method="get">
+      <input type="text" name="q" placeholder="Search by name…" value="{{ search }}" />
+      <select name="city">
+        <option value="">All Cities</option>
+        {% for c in cities %}
+        <option value="{{ c }}" {{ 'selected' if c == selected_city else '' }}>{{ c }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit">Filter</button>
+      <a href="/customers" class="btn-reset">Clear</a>
+    </form>
+
+    <div class="table-card full-width">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>City</th>
+            <th>Joined</th>
+            <th>Orders</th>
+            <th>Total Spent</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in customers %}
+          <tr>
+            <td>{{ c.name }}</td>
+            <td>{{ c.email }}</td>
+            <td>{{ c.city }}</td>
+            <td>{{ c.joined_date }}</td>
+            <td>{{ c.total_orders }}</td>
+            <td class="money">${{ "%.2f"|format(c.total_spent) }}</td>
+            <td><a href="/customers/{{ c.customer_id }}" class="btn-view">View →</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── CUSTOMER DETAIL ── -->
+    {% elif view == "customer_detail" %}
+    {% if rows %}
+    {% set c = rows[0] %}
+    <div class="page-header">
+      <a href="/customers" class="back-link">← All Customers</a>
+      <h1>{{ c.name }}</h1>
+      <p class="subtitle">{{ c.email }} &mdash; {{ c.city }}</p>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">City</div>
+        <div class="kpi-value small">{{ c.city }}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Member Since</div>
+        <div class="kpi-value small">{{ c.joined_date }}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Orders</div>
+        <div class="kpi-value">{{ rows|length }}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Spent</div>
+        <div class="kpi-value">${{ "%.2f"|format(rows|sum(attribute='order_total')) }}</div>
+      </div>
+    </div>
+
+    <div class="table-card full-width">
+      <h2>Order History</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td>#{{ row.order_id }}</td>
+            <td>{{ row.order_date }}</td>
+            <td><span class="status {{ row.status }}">{{ row.status }}</span></td>
+            <td class="money">${{ "%.2f"|format(row.order_total) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- ── PRODUCTS LIST ── -->
+    {% elif view == "products" %}
+    <div class="page-header">
+      <h1>Products</h1>
+      <p class="subtitle">Inventory and sales performance</p>
+    </div>
+
+    <form class="filter-bar" method="get">
+      <select name="category">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+        <option value="{{ cat }}" {{ 'selected' if cat == selected_category else '' }}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit">Filter</button>
+      <a href="/products" class="btn-reset">Clear</a>
+    </form>
+
+    <div class="table-card full-width">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Units Sold</th>
+            <th>Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in products %}
+          <tr>
+            <td>{{ p.name }}</td>
+            <td><span class="badge">{{ p.category }}</span></td>
+            <td>${{ "%.2f"|format(p.price) }}</td>
+            <td class="{{ 'stock-low' if p.stock_quantity < 50 else '' }}">{{ p.stock_quantity }}</td>
+            <td>{{ p.units_sold }}</td>
+            <td class="money">${{ "%.2f"|format(p.revenue) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% endif %}
+  </main>
+
+  <footer class="footer">
+    <p>InsightSQL &mdash; Built with Flask &amp; MySQL</p>
+  </footer>
+</body>
+</html>
