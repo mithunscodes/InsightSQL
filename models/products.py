@@ -1,8 +1,7 @@
-from db import get_db
+from db import get_cursor
 
 def get_top_products(n=5):
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("""
         SELECT
             p.name,
@@ -18,8 +17,7 @@ def get_top_products(n=5):
     return cursor.fetchall()
 
 def get_all_products():
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("""
         SELECT
             p.product_id,
@@ -37,8 +35,7 @@ def get_all_products():
     return cursor.fetchall()
 
 def get_low_stock(threshold=50):
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("""
         SELECT name, category, stock_quantity
         FROM products
@@ -48,7 +45,6 @@ def get_low_stock(threshold=50):
     return cursor.fetchall()
 
 def get_sales_summary():
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("SELECT * FROM sales_summary ORDER BY total_revenue DESC")
     return cursor.fetchall()

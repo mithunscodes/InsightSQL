@@ -1,8 +1,7 @@
-from db import get_db
+from db import get_cursor
 
 def get_monthly_revenue():
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("""
         SELECT
             YEAR(o.order_date)                  AS year,
@@ -16,8 +15,7 @@ def get_monthly_revenue():
     return cursor.fetchall()
 
 def get_revenue_by_category():
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("""
         SELECT
             p.category,
@@ -31,21 +29,18 @@ def get_revenue_by_category():
     return cursor.fetchall()
 
 def get_total_revenue():
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("SELECT SUM(quantity * unit_price) AS total FROM order_items")
     row = cursor.fetchone()
     return float(row["total"] or 0)
 
 def get_total_orders():
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("SELECT COUNT(*) AS total FROM orders")
     return cursor.fetchone()["total"]
 
 def get_recent_orders(limit=10):
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("""
         SELECT
             o.order_id,

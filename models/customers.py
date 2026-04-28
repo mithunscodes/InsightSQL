@@ -1,8 +1,7 @@
-from db import get_db
+from db import get_cursor
 
 def get_top_customers(limit=10):
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("""
         SELECT
             c.customer_id,
@@ -20,8 +19,7 @@ def get_top_customers(limit=10):
     return cursor.fetchall()
 
 def get_revenue_by_city():
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("""
         SELECT
             c.city,
@@ -37,8 +35,7 @@ def get_revenue_by_city():
     return cursor.fetchall()
 
 def get_customer_detail(customer_id):
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("""
         SELECT
             c.name,
@@ -59,8 +56,7 @@ def get_customer_detail(customer_id):
     return cursor.fetchall()
 
 def get_all_customers():
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("""
         SELECT
             c.customer_id,

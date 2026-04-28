@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from models.customers import get_all_customers, get_customer_detail
 from models.products  import get_all_products
-from db import get_db
+from db import get_cursor
 
 bp = Blueprint("filters", __name__)
 
@@ -41,8 +41,7 @@ def products():
 @bp.route("/api/search-customers")
 def search_customers():
     q = request.args.get("q", "")
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = get_cursor()
     cursor.execute("""
         SELECT customer_id, name, city, email
         FROM customers

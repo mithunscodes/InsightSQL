@@ -128,6 +128,8 @@
     <p>InsightSQL &mdash; Built with Flask &amp; MySQL</p>
   </footer>
 
+  {% include 'sql_log.html' %}
+
   <script>
     const monthlyData = {{ monthly_revenue | tojson }};
     const cityData    = {{ city_revenue    | tojson }};

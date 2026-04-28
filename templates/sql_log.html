@@ -1,0 +1,36 @@
+<div class="sql-log">
+  <div class="sql-log-header" onclick="toggleSqlLog()">
+    <span>⬡ SQL Query Log</span>
+    <em>{{ query_log|length }} quer{{ 'y' if query_log|length == 1 else 'ies' }} executed this request</em>
+    <span class="sql-log-toggle" id="sql-toggle">▲ show</span>
+  </div>
+  <div class="sql-log-body" id="sql-log-body">
+    {% for i, entry in query_log|enumerate %}
+    <div class="sql-entry">
+      <span class="sql-num">{{ i + 1 }}</span>
+      <span class="sql-ms">{{ entry.ms }}ms</span>
+      <span class="sql-text">{{ entry.sql | replace('SELECT', '<span class="sql-keyword">SELECT</span>')
+                                           | replace('FROM',   '<span class="sql-keyword">FROM</span>')
+                                           | replace('JOIN',   '<span class="sql-keyword">JOIN</span>')
+                                           | replace('WHERE',  '<span class="sql-keyword">WHERE</span>')
+                                           | replace('GROUP BY','<span class="sql-keyword">GROUP BY</span>')
+                                           | replace('ORDER BY','<span class="sql-keyword">ORDER BY</span>')
+                                           | replace('LIMIT',  '<span class="sql-keyword">LIMIT</span>')
+                                           | replace('INSERT', '<span class="sql-keyword">INSERT</span>')
+                                           | replace('COUNT',  '<span class="sql-keyword">COUNT</span>')
+                                           | replace('SUM',    '<span class="sql-keyword">SUM</span>')
+                                           | replace('COALESCE','<span class="sql-keyword">COALESCE</span>')
+                                           | safe }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  function toggleSqlLog() {
+    const body   = document.getElementById("sql-log-body");
+    const toggle = document.getElementById("sql-toggle");
+    const isOpen = body.classList.toggle("open");
+    toggle.textContent = isOpen ? "▼ hide" : "▲ show";
+  }
+</script>

@@ -16,6 +16,10 @@ def create_app():
 
     app.jinja_env.filters["enumerate"] = enumerate
 
+    @app.context_processor
+    def inject_query_log():
+        return {"query_log": database.get_query_log()}
+
     from routes.dashboard import bp as dashboard_bp
     from routes.reports   import bp as reports_bp
     from routes.filters   import bp as filters_bp
